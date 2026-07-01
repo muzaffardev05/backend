@@ -6,14 +6,12 @@ class TenderChunk(Base):
 
     id = Column(Integer, primary_key=True)
 
-    tender_id = Column(Integer,
-                       ForeignKey("tenders.id"))
+    tender_id = Column(String(255), ForeignKey("tenders.tender_no"))
 
-    document_id = Column(Integer,
-                         ForeignKey("documents.id"))
 
-    chunk_number = Column(Integer)
 
-    vector_id = Column(String(200), unique=True)
+    chunk_index = Column(Integer)
+    chunk_text = Column(String(2000))
 
     created_at = Column(DateTime)
+    updated_at = Column(DateTime)

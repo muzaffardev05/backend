@@ -6,6 +6,7 @@ from app.database import SessionLocal
 from app.models import (
     Tender
 )
+from app.models.tender_chunk import TenderChunk
 
 
 class DatabaseService:
@@ -82,6 +83,34 @@ class DatabaseService:
 
         return obj
     
+
+
+
+
+
+    def save_chunks(self, chunks):
+        
+    
+
+        now = datetime.now()
+
+        objects = []
+
+        for chunk in chunks:
+            objects.append(
+                TenderChunk(
+                    tender_id=chunk["tender_id"],
+                    chunk_index=chunk["chunk_index"],
+                    chunk_text=chunk["text"],
+                    created_at=now,
+                    updated_at=now,
+                )
+            )
+
+        self.db.bulk_save_objects(objects)
+        self.db.commit()
+
+        return len(objects)
 
     # def save_scraper_log(self,log_data):
     #         """
