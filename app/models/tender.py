@@ -1,25 +1,23 @@
-from pymysql import Date
-from sqlalchemy import Column, Enum, ForeignKey,Integer,String,DateTime, Text
-from base import Base
+
+from sqlalchemy import Column,Integer,String,DateTime,Text
+from app.base import Base
 class Tender(Base):
 
     __tablename__ = "tenders"
 
     id = Column(Integer, primary_key=True)
 
-    website_id = Column(Integer, ForeignKey("websites.id"))
+    website = Column(Text)
 
-    organization_id = Column(Integer, ForeignKey("organizations.id"))
+    organization= Column(Text)
 
-    department_id = Column(Integer, ForeignKey("departments.id"))
+    department = Column(Text)
 
-    category_id = Column(Integer, ForeignKey("categories.id"))
+    category = Column(Text)
 
-    type_id = Column(Integer, ForeignKey("tender_types.id"))
+    reference_number = Column(String(500))
 
-    reference_number = Column(String(100), unique=True)
-
-    tender_no = Column(String(100))
+    tender_no = Column(String(500),unique=True)
 
     title = Column(String(500))
 
@@ -30,7 +28,7 @@ class Tender(Base):
     location = Column(String(200))
 
     status = Column(
-        Enum("OPEN", "CLOSED", "EXPIRED")
+       String(200)
     )
 
     source_url = Column(Text)

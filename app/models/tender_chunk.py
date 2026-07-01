@@ -1,5 +1,5 @@
 from sqlalchemy import Column, ForeignKey,Integer,String,DateTime
-from base import Base
+from app.base import Base
 class TenderChunk(Base):
 
     __tablename__ = "tender_chunks"

@@ -1,7 +1,7 @@
 
 
 from sqlalchemy import Column, ForeignKey,Integer,DateTime,Text
-from base import Base
+from app.base import Base
 class ChatHistory(Base):
 
     __tablename__ = "chat_history"

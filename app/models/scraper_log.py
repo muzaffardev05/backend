@@ -1,5 +1,5 @@
 from sqlalchemy import Column,Integer,String,DateTime
-from base import Base
+from app.base import Base
 class ScraperLog(Base):
 
     __tablename__ = "scraper_logs"

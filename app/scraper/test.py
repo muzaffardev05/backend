@@ -1,8 +1,8 @@
-from ppra_scraper import PPRAScraper
-from ppra_parser import PPRAParser
+from app.scraper.ppra_scraper import PPRAScraper
+from app.scraper.ppra_parser import PPRAParser
+from app.services.database_service import DatabaseService
 
-URL = "https://epms.ppra.gov.pk/public/tenders/active-tenders?keyword=&tender_no=&closing_date=&tender_type=&procurement_category=&sector=&tender_nature=&organization=&country=&advertise_date_from=&advertise_date_to=&status=&city=Karachi"
-
+db = DatabaseService()
 scraper = PPRAScraper()
 
 rows = scraper.scrape()
@@ -14,5 +14,8 @@ parser = PPRAParser()
 for row in rows:
 
     tender = parser.parse(row)
+
+
+    db.save_tender(tender)
 
     print(tender)

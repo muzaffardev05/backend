@@ -1,8 +1,5 @@
-from .website import Website
-from .organization import Organization
-from .department import Department
-from .category import Category
-from .tender_type import TenderType
+
+
 from .tender import Tender
 from .document import Document
 from .scraper_log import ScraperLog

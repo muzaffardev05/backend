@@ -1,6 +1,5 @@
 from bs4 import Tag
 
-
 class PPRAParser:
     """
     Parse a PPRA table row into a standard dictionary.
@@ -13,15 +12,11 @@ class PPRAParser:
         if len(cols) < 8:
             return None
 
-        # -------------------------------------
-        # Tender Number
-        # -------------------------------------
+
 
         tender_no = cols[1].get_text(strip=True)
 
-        # -------------------------------------
-        # Tender Details
-        # -------------------------------------
+
 
         detail_items = list(cols[2].stripped_strings)
 
@@ -46,9 +41,7 @@ class PPRAParser:
         if len(detail_items) >= 4:
             organization = detail_items[3]
 
-        # -------------------------------------
-        # Organization Details
-        # -------------------------------------
+
 
         org_items = list(cols[3].stripped_strings)
         
@@ -66,27 +59,18 @@ class PPRAParser:
         if len(org_items) >= 3:
             location = org_items[2]
 
-        # -------------------------------------
-        # Status
-        # -------------------------------------
 
         status = cols[4].get_text(strip=True)
 
-        # -------------------------------------
-        # Publish Date
-        # -------------------------------------
+
 
         publish_date = cols[5].get_text(strip=True)
 
-        # -------------------------------------
-        # Closing Date
-        # -------------------------------------
+
 
         closing_date = cols[6].get_text(" ", strip=True)
 
-        # -------------------------------------
-        # Detail URL
-        # -------------------------------------
+
 
         source_url = None
 
@@ -103,15 +87,14 @@ class PPRAParser:
                 else:
                     source_url = "https://ppra.org.pk" + href
 
-        # -------------------------------------
-        # Standard Object
-        # -------------------------------------
+
 
         tender = {
 
             "tender_no": tender_no,
             "reference_number": reference_number,
             "title": title,
+            "website":"PPRA",
 
             "category": category,
 
@@ -125,7 +108,7 @@ class PPRAParser:
 
             "publish_date": publish_date,
 
-            "closing_date": closing_date,
+            "closing_date":closing_date,
 
             "source_url": source_url,
 

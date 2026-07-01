@@ -1,6 +1,6 @@
 
 from sqlalchemy import BigInteger, Column, ForeignKey,Integer,String,Boolean,DateTime, Text
-from base import Base
+from app.base import Base
 
 class Document(Base):
 
