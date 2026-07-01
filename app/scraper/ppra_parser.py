@@ -9,7 +9,7 @@ class PPRAParser:
     def parse(self, row: Tag):
 
         cols = row.find_all("td")
-
+        
         if len(cols) < 8:
             return None
 
@@ -27,17 +27,21 @@ class PPRAParser:
 
         title = None
         category = None
-        # tender_no = None
+        reference_number = None
         organization = None
 
         if len(detail_items) >= 1:
-            title = detail_items[0]
+            title = cols[2].select_one("strong").get_text(strip=True)
 
         if len(detail_items) >= 2:
-            category = detail_items[1]
+            badge_div = cols[2].select_one(
+    "div.d-flex.gap-2.flex-wrap.mt-2"
+)
+            badges = badge_div.select("small")
+            category = badges[0].get_text(strip=True)
+            reference_number=badges[1].get_text(strip=True)
 
-        # if len(detail_items) >= 3:
-        #     tender_no = detail_items[2]
+
 
         if len(detail_items) >= 4:
             organization = detail_items[3]
@@ -47,6 +51,7 @@ class PPRAParser:
         # -------------------------------------
 
         org_items = list(cols[3].stripped_strings)
+        
 
         organization_name = None
         department = None
@@ -105,6 +110,7 @@ class PPRAParser:
         tender = {
 
             "tender_no": tender_no,
+            "reference_number": reference_number,
             "title": title,
 
             "category": category,

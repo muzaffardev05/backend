@@ -5,7 +5,9 @@ URL = "https://epms.ppra.gov.pk/public/tenders/active-tenders?keyword=&tender_no
 
 scraper = PPRAScraper()
 
-rows = scraper.scrape(URL)
+rows = scraper.scrape()
+
+print(f"Total tenders: {len(rows)}")
 
 parser = PPRAParser()
 

@@ -1,11 +1,27 @@
 import requests
 from bs4 import BeautifulSoup
-
+import re
 
 class PPRAScraper:
 
     
-    BASE_URL = "https://epms.ppra.gov.pk/public/tenders/active-tenders?keyword=&tender_no=&closing_date=&tender_type=&procurement_category=&sector=&tender_nature=&organization=&country=&advertise_date_from=&advertise_date_to=&status=&city=Karachi"
+    BASE_URL = "https://epms.ppra.gov.pk/public/tenders/active-tenders"
+    DEFAULT_PARAMS = {
+    "keyword": "",
+    "tender_no": "",
+    "closing_date": "",
+    "tender_type": "",
+    "procurement_category": "",
+    "sector": "",
+    "tender_nature": "",
+    "organization": "",
+    "country": "",
+    "advertise_date_from": "",
+    "advertise_date_to": "",
+    "status": "",
+    "city": "",
+                    }
+
 
     def __init__(self):
         self.session = requests.Session()
@@ -18,16 +34,20 @@ class PPRAScraper:
             )
         })
 
-    def fetch(self, url: str) -> BeautifulSoup:
-        """
-        Download a page and return BeautifulSoup object.
-        """
+    def fetch(self, page=1):
 
-        response = self.session.get(url, timeout=30)
+        params = self.DEFAULT_PARAMS.copy()
+        params["page"] = page
+
+        response = self.session.get(
+            self.BASE_URL,
+            params=params,
+            timeout=30
+        )
+
         response.raise_for_status()
 
-        return BeautifulSoup(response.text, "html.parser")
-
+        return BeautifulSoup(response.text, "html.parser")        
     def get_table(self, soup: BeautifulSoup):
         """
         Find the tender table.
@@ -42,7 +62,16 @@ class PPRAScraper:
             raise Exception("Tender table not found.")
 
         return table
+    def get_total_pages(self, soup):
 
+        text = soup.get_text(" ", strip=True)
+
+        match = re.search(r"Page\s+\d+\s+of\s+(\d+)", text)
+
+        if match:
+            return int(match.group(1))
+
+        return 1
     def get_rows(self, table):
         """
         Return all data rows (skip header).
@@ -55,18 +84,26 @@ class PPRAScraper:
 
         return rows[1:]
 
-    def scrape(self, url):
-        """
-        Complete scraping process.
+    def scrape(self):
 
-        Returns:
-            list[Tag]
-        """
+        first_page = self.fetch(page=1)
 
-        soup = self.fetch(url)
+        total_pages = self.get_total_pages(first_page)
 
-        table = self.get_table(soup)
+        print(f"Total Pages: {total_pages}")
 
-        rows = self.get_rows(table)
+        all_rows = []
 
-        return rows
+        for page in range(1, total_pages + 1):
+
+            print(f"Scraping Page {page}")
+
+            soup = self.fetch(page)
+
+            table = self.get_table(soup)
+
+            rows = self.get_rows(table)
+
+            all_rows.extend(rows)
+
+        return all_rows
