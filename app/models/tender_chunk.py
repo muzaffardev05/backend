@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey,Integer,String,DateTime
+from sqlalchemy import Boolean, Column, ForeignKey,Integer,String,DateTime
 from app.base import Base
 class TenderChunk(Base):
 
@@ -15,3 +15,4 @@ class TenderChunk(Base):
 
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
+    embedded=Column(Boolean, default=False)

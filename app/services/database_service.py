@@ -4,9 +4,10 @@ from sqlalchemy import null
 
 from app.database import SessionLocal
 from app.models import (
-    Tender
+    Tender,
+    TenderChunk
 )
-from app.models.tender_chunk import TenderChunk
+
 
 
 class DatabaseService:
@@ -111,6 +112,64 @@ class DatabaseService:
         self.db.commit()
 
         return len(objects)
+
+    def mark_chunk_as_embedded(self, id):
+
+        chunk = self.db.query(TenderChunk).filter(
+            TenderChunk.id == id
+        ).first()
+
+        if chunk:
+            chunk.embedded = True
+            self.db.commit()
+            return True
+
+        return False
+    
+    def get_unembedded_chunks(self):
+        chunks = (
+            self.db.query(TenderChunk)
+            .filter(TenderChunk.embedded == False)
+            .all()
+        )
+
+        return [
+            {
+                "id": chunk.id,
+                "tender_id": chunk.tender_id,
+                "chunk_index": chunk.chunk_index,
+                "text": chunk.chunk_text,
+            }
+            for chunk in chunks
+        ]
+# def replace_chunks(self, tender_id, chunks):
+#     """
+#     Delete existing chunks for a tender and insert new ones.
+#     """
+
+#     self.db.query(TenderChunk).filter(
+#         TenderChunk.tender_id == tender_id
+#     ).delete()
+
+#     now = datetime.now()
+
+#     objects = []
+
+#     for index, text in enumerate(chunks):
+#         objects.append(
+#             TenderChunk(
+#                 tender_id=tender_id,
+#                 chunk_index=index,
+#                 chunk_text=text,
+#                 created_at=now,
+#                 updated_at=now,
+#             )
+#         )
+
+#     self.db.bulk_save_objects(objects)
+#     self.db.commit()
+
+#     return len(objects)
 
     # def save_scraper_log(self,log_data):
     #         """

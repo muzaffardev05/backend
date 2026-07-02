@@ -6,7 +6,7 @@ class ScraperLog(Base):
 
     id = Column(Integer, primary_key=True)
 
-    website_id = Column(Integer)
+    website = Column(String(200))
 
     started_at = Column(DateTime)
 

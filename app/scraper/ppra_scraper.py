@@ -47,7 +47,8 @@ class PPRAScraper:
 
         response.raise_for_status()
 
-        return BeautifulSoup(response.text, "html.parser")        
+        return BeautifulSoup(response.text, "html.parser")  
+          
     def get_table(self, soup: BeautifulSoup):
         """
         Find the tender table.
@@ -62,6 +63,7 @@ class PPRAScraper:
             raise Exception("Tender table not found.")
 
         return table
+    
     def get_total_pages(self, soup):
 
         text = soup.get_text(" ", strip=True)
@@ -72,6 +74,7 @@ class PPRAScraper:
             return int(match.group(1))
 
         return 1
+    
     def get_rows(self, table):
         """
         Return all data rows (skip header).
