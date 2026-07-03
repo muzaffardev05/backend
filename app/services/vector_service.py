@@ -39,7 +39,7 @@ class VectorService:
             self.metadata.append({
                 "tender_id": chunk["tender_id"],
                 "chunk_index": chunk["chunk_index"],
-                "text": chunk["text"]
+                "text": chunk["chunk_text"]
             })
 
         self.save() 
@@ -72,3 +72,5 @@ class VectorService:
             })
 
         return results        
+    
+
