@@ -208,7 +208,7 @@ class DatabaseService:
 
 
    
-    def get_unembedded_tenders(self, batch_size=500, offset=0):
+    def get_unembedded_tenders(self, offset=0):
 
         rows = (
             self.db.query(
@@ -224,7 +224,7 @@ class DatabaseService:
                 Tender.document,
             )
             .filter(Tender.embedded.is_(False))
-            .limit(batch_size)
+            
             .offset(offset)
             .all()
         )

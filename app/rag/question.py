@@ -1,4 +1,5 @@
 from app.services.embedding_service import EmbeddingService
+from app.services.filter_service import FilterService
 from app.services.vector_service import VectorService
 
 
@@ -7,7 +8,7 @@ def main():
     vector_service = VectorService()
 
     question = (
-        "Tenders for network firewalls, intrusion detection systems (IDS), and core switch security upgrades "
+        "Tenders for network firewalls, intrusion detection systems (IDS), and core switch security upgrades"
     )
 
     # Generate embedding
@@ -23,8 +24,16 @@ def main():
         print("No matching tenders found.")
         return
 
+    filter_service = FilterService()
+    results = filter_service.filter_tenders(
+        results=results,
+        question=question
+    )
+    results = results[:5]
     print(f"\nQuestion:\n{question}\n")
     print("=" * 100)
+
+
 
     for i, result in enumerate(results, start=1):
         
