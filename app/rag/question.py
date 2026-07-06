@@ -6,12 +6,14 @@ def main():
     embedding_service = EmbeddingService()
     vector_service = VectorService()
 
-    question = "Show me IT tenders"
+    question = (
+        "Tenders for network firewalls, intrusion detection systems (IDS), and core switch security upgrades "
+    )
 
     # Generate embedding
-    query_vector = embedding_service.generate_embedding(question)
+    query_vector = embedding_service.generate_embeddings(question)
 
-    # Search vector database
+    # Let VectorService.search() handle conversion and normalization
     results = vector_service.search(
         query_embedding=query_vector,
         top_k=5
@@ -21,18 +23,28 @@ def main():
         print("No matching tenders found.")
         return
 
-    print(f"\nQuestion: {question}\n")
-    print("=" * 80)
+    print(f"\nQuestion:\n{question}\n")
+    print("=" * 100)
 
-    for i, result in enumerate(results, 1):
+    for i, result in enumerate(results, start=1):
+        
         print(f"Result {i}")
-        print("-" * 80)
-        print(f"Tender ID  : {result['tender_id']}")
-        print(f"Score      : {result['score']:.4f}")
-        print(f"Chunk      : {result['chunk_index']}")
-        print("Text:")
-        print(result["text"])
-        print("=" * 80)
+        print("-" * 100)
+        print(f"Tender ID : {result['tender_id']}")
+        print(f"Title     : {result['title']}")
+        print(f"Organization: {result['organization']}")
+        print(f"Publish Date: {result['publish_date']}")
+        print(f"Closing Date: {result['closing_date']}")
+        print(f"Location  : {result['location']}")
+        print(f"Status    : {result['status']}")
+
+
+        print(f"Score     : {result['score']:.4f}")
+
+
+
+
+        print("=" * 100)
 
 
 if __name__ == "__main__":
