@@ -26,6 +26,7 @@ class FilterService:
         self.SECURITY_KEYWORDS = {
             "firewall",
             "ngfw",
+            "cctv",
             "ids",
             "ips",
             "cyber",
@@ -52,8 +53,22 @@ class FilterService:
             "vccs",
             "satellite",
             "frequency",
+            "Generator",
         }
-
+        self.PAK_CITIES = [
+            "karachi",
+            "lahore",
+            "islamabad",
+            "rawalpindi",
+            "peshawar",
+            "quetta",
+            "multan",
+            "faisalabad",
+            "hyderabad",
+            "sialkot",
+            "gujranwala",
+            "sukkur",
+        ]
         # Merge all into a master tech set
         self.ALL_TECH_KEYWORDS = self.IT_KEYWORDS.union(
             self.SECURITY_KEYWORDS, self.COMMUNICATIONS_KEYWORDS
@@ -68,7 +83,7 @@ class FilterService:
             "cement",
             "bricks",
             "guard",
-            "cctv",
+            
             "barbed",
             "furniture",
             "chair",
@@ -81,12 +96,19 @@ class FilterService:
             "gate",
         }
 
-    def filter_tenders(self, results, question):
+    def filter_tenders(self, results,question):
         filtered = []
         current_time = datetime.now()
+        question_lower = question.lower()
+        location = None
+        for city in self.PAK_CITIES:
+            if re.search(r"\b"+re.escape(city)+r"\b",question_lower):
+                location = city
+                break
+    
 
         for result in results:
-            # 1. Build structured searchable blocks
+          
             title = str(result.get("title", "")).lower()
             org = str(result.get("organization", "")).lower()
             dept = str(result.get("department", "")).lower()
@@ -94,15 +116,17 @@ class FilterService:
             loc = str(result.get("location", "")).lower()
             text = str(result.get("text", "")).lower()
 
-            # Flatten text fields for regex scanning
+            if location:
+                if location not in loc:
+                    continue
             full_searchable = f"{title} {org} {dept} {cat} {loc} {text}"
 
-            # 2. Domain Keyword Processing (Looking for whole-word matches)
+           
             tech_matches = 0
             for kw in self.ALL_TECH_KEYWORDS:
-                # \b ensures exact word/phrase boundary matching
+                
                 if re.search(r"\b" + re.escape(kw) + r"\b", full_searchable):
-                    # Give higher weight if the tech keyword appears in the Title or Category
+                   
                     if re.search(
                         r"\b" + re.escape(kw) + r"\b", title
                     ) or re.search(r"\b" + re.escape(kw) + r"\b", cat):
@@ -110,25 +134,25 @@ class FilterService:
                     else:
                         tech_matches += 1
 
-            # 3. Filter Gate: If it doesn't match your domain tech keywords, skip it entirely
+          
             if tech_matches == 0:
                 continue
 
-            # 4. Trap Detection: Penalize or drop physical/civil works masquerading as tech security
+           
             trap_score = sum(
                 2
                 for trap in self.PHYSICAL_TRAPS
                 if re.search(r"\b" + re.escape(trap) + r"\b", full_searchable)
             )
 
-            # Adjust score calculation
+            
             final_relevance_score = tech_matches - trap_score
 
-            # If traps heavily outweigh tech terms, drop this tender entirely
+            
             if final_relevance_score <= 0:
                 continue
 
-            # 5. Strict Date Validation for Active Status
+            
             is_expired = False
             closing_date_raw = result.get("closing_date") or result.get(
                 "Closing Date"
@@ -136,7 +160,7 @@ class FilterService:
 
             if closing_date_raw:
                 try:
-                    # Clean timestamps out of common PPRA variations (e.g. 'Jul 13, 2026 10:45 AM')
+                    
                     clean_date = re.sub(
                         r"\s+\d+:\d+.*", "", str(closing_date_raw)
                     ).strip()
@@ -153,16 +177,13 @@ class FilterService:
                 except Exception:
                     pass
 
-            # Update item attributes for sorting matrix
+       
             result["final_relevance_score"] = max(0, final_relevance_score)
             result["is_expired"] = is_expired
 
             filtered.append(result)
 
-        # 6. Multi-Tier Ranking Strategy:
-        # Tier 1: Active Tenders come before expired ones
-        # Tier 2: Highest computed relevance score (Tech Weights - Traps)
-        # Tier 3: Underlying Vector Similarity Score from your DB as the ultimate tiebreaker
+
         filtered.sort(
             key=lambda x: (
                 0 if x["is_expired"] else 1,  # Active (1) beats Expired (0)
