@@ -8,7 +8,7 @@ def main():
     vector_service = VectorService()
 
     question = (
-        "Tenders for network firewalls, intrusion detection systems (IDS), and core switch security upgrades"
+        "Tenders for network firewalls, intrusion detection systems (IDS), and core switch security upgrades published"
     )
 
     # Generate embedding

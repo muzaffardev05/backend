@@ -1,12 +1,13 @@
 QUERY_STOPWORDS = {
     "in",
     "at",
-    "on",
+
     "for",
     "of",
     "to",
     "by",
     "with",
+    
     "from",
     "near",
     "around",

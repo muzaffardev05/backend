@@ -338,6 +338,6 @@ parser = QueryParser()
 
 print(
     parser.parse(
-        "Tenders for network firewalls, intrusion detection systems (IDS), Cyber security today"
+        "Tenders for network firewalls, intrusion detection systems (IDS), Cyber security closing today active"
     )
 )

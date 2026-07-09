@@ -1,7 +1,7 @@
 from datetime import datetime
 import hashlib
 import logging
-
+import json
 from app.database import SessionLocal
 from app.models import (
     Tender
@@ -294,6 +294,7 @@ class DatabaseService:
             .count()
         )
 
+
   
     def total_unembedded_tenders(self):
 
@@ -308,3 +309,21 @@ class DatabaseService:
             .count()
 
         )
+    
+
+    def get_distinct_organizations(self):
+     
+
+     rows = (
+        self.db.query(Tender.organization)
+        .filter(
+            Tender.organization.isnot(None),
+            Tender.organization != ""
+        )
+        .distinct()
+        .order_by(Tender.organization)
+        .all()
+    )
+     
+
+     return [row[0] for row in rows]
