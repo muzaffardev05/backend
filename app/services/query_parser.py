@@ -3,9 +3,11 @@ from datetime import date
 from app.data.locations import LOCATIONS
 from app.data.stopwords import QUERY_STOPWORDS
 from app.utils.date_parser import DateParser
+from app.data.statuses import STATUS_ALIASES
 class QueryParser:
     def __init__(self):
         self.locations=LOCATIONS
+        self.statuses=STATUS_ALIASES
         
 
     def _extract_locations(self, text: str):
@@ -250,9 +252,47 @@ class QueryParser:
 
         return closing,remaining
     
+
+    def _extract_status(self,text):
+        lower=text.lower()
+        remaining=text
+        found=[]
+        expired=None
+        
+
+        for canonical,aliases in self.statuses.items():
+            for alias in aliases:
+                pattern=r"\b{}\b".format(re.escape(alias))
+                if re.search(pattern,lower):
+                    found.append(canonical)
+                    remaining=re.sub(pattern," ",remaining,flags=re.I)
+                    break
+        if re.search(r"\bopen\b",lower):
+            found.extend(["Published","PublishedCorrigendum"])
+            expired=False
+            remaining=re.sub(r"\bopen\b"," ",remaining,flags=re.I) 
+        if re.search(r"\bactive\b",lower):
+            found.extend(["Published","PublishedCorrigendum"])
+            expired=False
+            remaining=re.sub(r"\bactive\b"," ",remaining,flags=re.I) 
+        if re.search(r"\blive\b",lower):
+            found.extend(["Published","PublishedCorrigendum"])
+            expired=False
+            remaining=re.sub(r"\blive\b"," ",remaining,flags=re.I) 
+        if re.search(r"\bclosed\b",lower):
+            found.extend(["Published","PublishedCorrigendum"])
+            expired=True
+            remaining=re.sub(r"\bclosed\b"," ",remaining,flags=re.I) 
+        if re.search(r"\bexpired\b",lower):
+            found.extend(["Published","PublishedCorrigendum"])
+            expired=True
+            remaining=re.sub(r"\bexpired\b"," ",remaining,flags=re.I) 
+        found = list(dict.fromkeys(found))
+        remaining=re.sub(r"\s+"," ",remaining).strip()
+        return found,expired,remaining
+                  
     def parse(self,question:str):
         original=question.strip()
-        print("orignal",original)
         semantic_query=original
         
      
@@ -263,6 +303,7 @@ class QueryParser:
             "organization":[],
             "status":[],
             "publish_date":None,
+             "status": [],
             "closing_date":None,
             "expired":None,
             "tender_no":None,
@@ -280,6 +321,10 @@ class QueryParser:
 )
         filters['publish_date']=publish
         semantic_query=self._clean_query(semantic_query)
+
+        status,expired,semantic_query=self._extract_status(semantic_query)
+        filters["status"]=status
+        filters["expired"]=expired
         return {
             "semantic_query":semantic_query,
             "filters":filters,
@@ -293,6 +338,6 @@ parser = QueryParser()
 
 print(
     parser.parse(
-        "Cyber security tenders closing between July 1 and July 10"
+        "Tenders for network firewalls, intrusion detection systems (IDS), Cyber security today"
     )
 )
