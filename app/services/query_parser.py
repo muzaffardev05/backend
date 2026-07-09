@@ -104,7 +104,7 @@ class QueryParser:
                 if d:
                     publish={
                         "from":d,
-                        "to":d.max
+                        "to":date.max
                     }
                     remaining=re.sub(r"(?:published\s+)?after\s+.+"," ",remaining,flags=re.IGNORECASE)
         
@@ -116,7 +116,7 @@ class QueryParser:
                     publish={
                         "from":date.min,"to":d
                     }
-                    remaining=re.sub(r"(:?published\s+)?before\s+.+"," ",remaining,flags=re.IGNORECASE)
+                    remaining=re.sub(r"(?:published\s+)?before\s+.+"," ",remaining,flags=re.IGNORECASE)
         
 
 
@@ -141,10 +141,115 @@ class QueryParser:
                         "from":d,
                         "to":d
                     }
-                    remaining=re.sub(r"(:?published\s+)?on\s+.+","",remaining,flags=re.IGNORECASE)
+                    remaining=re.sub(r"(?:published\s+)?on\s+.+","",remaining,flags=re.IGNORECASE)
         remaining = re.sub(r"\s+", " ", remaining).strip()
         return publish, remaining
 
+
+    def _extract_closing_date(self,text):
+        lower=text.lower()
+        remaining=text
+        closing=None
+        patterns = [
+
+                    (
+                        r"\bclosing\s+today\b",
+                        DateParser.today
+                    ),
+
+                    (
+                        r"\bclosing\s+tomorrow\b",
+                        DateParser.tomorrow
+                    ),
+
+                    (
+                        r"\bclosing\s+yesterday\b",
+                        DateParser.yesterday
+                    ),
+
+                    (
+                        r"\bclosing\s+this\s+week\b",
+                        DateParser.this_week
+                    ),
+
+                    (
+                        r"\bclosing\s+last\s+week\b",
+                        DateParser.last_week
+                    ),
+
+                    (
+                        r"\bclosing\s+this\s+month\b",
+                        DateParser.this_month
+                    )
+                      ]
+        for pattern, func in patterns:
+
+            if re.search(pattern, lower):
+
+                f, t = func()
+
+                closing = {
+                    "from": f,
+                    "to": t
+                }
+
+                remaining = re.sub(
+                    pattern,
+                    " ",
+                    remaining,
+                    flags=re.I
+                )
+
+                break
+
+        if closing is None:
+            match=re.search(r"closing\s+after\s+(.+)",lower)
+            if match:
+                d=DateParser.parse_date(match.group(1))
+                if d:
+                    closing={
+                        "from":d,
+                        "to":date.max
+                    }
+                    remaining=re.sub(r"closing\s+after\s+.+"," ", remaining,flags=re.I)
+
+        if closing is None:
+            match=re.search(r"closing\s+before\s+(.+)",lower)
+            if match:
+                d=DateParser.parse_date(match.group(1))
+                if d:
+                    closing={
+                        "from":date.min,
+                        "to":d
+                    } 
+                    remaining=re.sub(r"closing\s+before\s+.+"," ",remaining,flags=re.I)       
+
+        if closing is None:
+            match=re.search(r"closing\s+on\s+(.+)",lower)
+            if match:
+                d=DateParser.parse_date(match.group(1))
+                if d:
+                    closing={
+                        "from":d,
+                        "to":d
+                    }
+                    remaining=re.sub(r"closing\s+on\s+.+"," ",remaining,flags=re.I)
+        if closing is None:
+            match=re.search(r"closing\s+between\s+(.+?)\s+and\s+(.+)",lower)     
+            if match:
+                d1=DateParser.parse_date(match.group(1)
+                )
+                d2=DateParser.parse_date(match.group(2))
+                if d1 and d2:
+                    closing={
+                        "from":min(d1,d2),
+                        "to":max(d1,d2)
+                    }
+                    remaining=re.sub(r"closing\s+between\s+.+"," ",remaining,flags=re.I)
+        remaining=re.sub(r"\s+"," ",remaining).strip()
+
+        return closing,remaining
+    
     def parse(self,question:str):
         original=question.strip()
         print("orignal",original)
@@ -165,6 +270,11 @@ class QueryParser:
         }
         locations,semantic_query=self._extract_locations(semantic_query)
         filters["location"]=locations
+        closing, semantic_query = self._extract_closing_date(
+            semantic_query
+        )
+
+        filters["closing_date"] = closing
         publish, semantic_query = self._extract_publish_date(
     semantic_query
 )
@@ -183,6 +293,6 @@ parser = QueryParser()
 
 print(
     parser.parse(
-        "Cyber security tenders between June 1 and June 15"
+        "Cyber security tenders closing between July 1 and July 10"
     )
 )
