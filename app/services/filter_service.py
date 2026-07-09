@@ -152,41 +152,14 @@ class FilterService:
             if final_relevance_score <= 0:
                 continue
 
-            
-            is_expired = False
-            closing_date_raw = result.get("closing_date") or result.get(
-                "Closing Date"
-            )
-
-            if closing_date_raw:
-                try:
-                    
-                    clean_date = re.sub(
-                        r"\s+\d+:\d+.*", "", str(closing_date_raw)
-                    ).strip()
-                    formats = ["%Y-%m-%d", "%b %d, %Y"]
-
-                    for fmt in formats:
-                        try:
-                            closing_date = datetime.strptime(clean_date, fmt)
-                            if closing_date.date() < current_time.date():
-                                is_expired = True
-                            break
-                        except ValueError:
-                            continue
-                except Exception:
-                    pass
-
-       
             result["final_relevance_score"] = max(0, final_relevance_score)
-            result["is_expired"] = is_expired
-
+            
             filtered.append(result)
 
 
         filtered.sort(
             key=lambda x: (
-                0 if x["is_expired"] else 1,  # Active (1) beats Expired (0)
+               
                 x["final_relevance_score"],  # Highest custom match score
                 x.get("score", 0),  # Baseline vector rank
             ),
