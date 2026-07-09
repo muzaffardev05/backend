@@ -1,7 +1,7 @@
 import re
 
 from app.data.locations import LOCATIONS
-
+from app.data.stopwords import QUERY_STOPWORDS
 class QueryParser:
     def __init__(self):
         self.locations=LOCATIONS
@@ -22,10 +22,18 @@ class QueryParser:
         remaining=re.sub(r"\s+"," ",remaining).strip()
         return found,remaining   
 
+    def _clean_query(self,text:str):
+        words=re.findall(r"\w+",text.lower())
+        clean=[]
+        for word in words:
+            if word.lower() in QUERY_STOPWORDS:
+                continue
+            clean.append(word)
+        return " ".join(clean)
 
     def parse(self,question:str):
         original=question.strip()
-        semantic_query=original
+        semantic_query=self._clean_query(original)
 
         filters={
             "location":[],
