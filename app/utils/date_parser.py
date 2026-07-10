@@ -7,7 +7,7 @@ class DateParser:
     def today():
         today=date.today()
         return today, today
-    z
+    
     @staticmethod
     def yesterday():
         d=date.today()-timedelta(days=1)

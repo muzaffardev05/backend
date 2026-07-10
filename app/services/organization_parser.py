@@ -13,7 +13,7 @@ class OrganizationParser:
             / "data"
             / "organizations.json"
         )
-        print(file_path)
+        
         with open(file_path, "r", encoding="utf-8") as f:
             self.organizations = json.load(f)
             
@@ -58,11 +58,11 @@ class OrganizationParser:
 
 
 
-parser = OrganizationParser()
+# parser = OrganizationParser()
 
-organizations, remaining = parser.extract(
-    "IT security tenders from ksew in Karachi"
-)
+# organizations, remaining = parser.extract(
+#     "IT security tenders from ksew in Karachi"
+# )
 
-print(organizations)
-print(remaining)
+# print(organizations)
+# print(remaining)

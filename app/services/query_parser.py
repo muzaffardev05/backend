@@ -4,6 +4,9 @@ from app.data.locations import LOCATIONS
 from app.data.stopwords import QUERY_STOPWORDS
 from app.utils.date_parser import DateParser
 from app.data.statuses import STATUS_ALIASES
+from app.services.organization_parser import OrganizationParser
+
+organizationparser=OrganizationParser()
 class QueryParser:
     def __init__(self):
         self.locations=LOCATIONS
@@ -320,6 +323,10 @@ class QueryParser:
     semantic_query
 )
         filters['publish_date']=publish
+        organization,semantic_query=organizationparser.extract(semantic_query)
+        filters["organization"]=organization
+
+
         semantic_query=self._clean_query(semantic_query)
 
         status,expired,semantic_query=self._extract_status(semantic_query)
@@ -334,10 +341,11 @@ class QueryParser:
 
 
 
-parser = QueryParser()
+# parser = QueryParser()
 
-print(
-    parser.parse(
-        "Tenders for network firewalls, intrusion detection systems (IDS), Cyber security closing today active"
-    )
-)
+
+# response=    parser.parse(
+#         "Tenders for network firewalls, intrusion detection systems (IDS), Cyber security closing today active  ksew in Karachi"
+#     )
+
+# print(response["semantic_query"])
