@@ -7,3 +7,4 @@ sentence-transformers
 touch
 faiss-cpu
 python-dateutil
+groq
