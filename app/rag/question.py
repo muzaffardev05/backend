@@ -13,7 +13,7 @@ def main():
     
 
     question = (
-        "Tenders for network firewalls, intrusion detection systems (IDS), Cyber Security in Karachi  active"
+        "Tenders for Cyber Security in Karachi"
     )
     parse_query= query_parser.parse(question)
     semantic_query=parse_query["semantic_query"]

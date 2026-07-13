@@ -11,7 +11,7 @@ Do not skip any tender.
 Do not merge tenders together.
 
 For EACH tender create a separate section.
-
+First Explain the query
 For every tender include
 
 - Tender ID

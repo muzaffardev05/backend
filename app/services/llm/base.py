@@ -1,9 +1,9 @@
-from abc import ABC, abstractmethod
 
 
-class BaseLLM(ABC):
 
-    @abstractmethod
+class BaseLLM():
+
+   
     def answer(
         self,
         question: str,
