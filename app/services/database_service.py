@@ -4,8 +4,11 @@ import logging
 import json
 from app.database import SessionLocal
 from app.models import (
-    Tender
+    Tender,
+    ChatMessage,
+    ChatSession
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +56,53 @@ class DatabaseService:
 
 
 
+    def create_session(self, user_id, title="New Chat"):
+        session = ChatSession(
+            user_id=user_id,
+            title=title
+        )
 
+        self.db.add(session)
+        self.commit()
+        self.db.refresh(session)
+
+        return session
+    
+    def save_message(self, session_id, role, content):
+
+        message = ChatMessage(
+            session_id=session_id,
+            role=role,
+            content=content
+        )
+
+        self.db.add(message)
+        self.commit()
+        self.db.refresh(message)
+
+        return message
+
+    def get_messages(self, session_id):
+
+        return (
+            self.db.query(ChatMessage)
+            .filter(ChatMessage.session_id == session_id)
+            .order_by(ChatMessage.created_at)
+            .all()
+        )
+    def save_chat(self,question,answer):
+        now=datetime.now()
+        obj=ChatMessage(
+            id=1,
+            question=question,
+            answer=answer,
+            user_id=1,
+            created_at=now
+        )
+        self.db.add(obj)
+        self.commit()
+        self.db.refresh(obj)
+        return obj
 
     def save_tender(self, tender,document):
 
