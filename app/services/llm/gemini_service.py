@@ -11,7 +11,7 @@ class GeminiService:
         model="gemini-3-flash-preview"
     ):
         self.client = genai.Client(
-            api_key=""
+            api_key="APikey"
         )
 
         self.model = model
