@@ -126,46 +126,7 @@ def embed_pending_tenders(db):
     logger.info("Vectors added : %s", total_vectors)
 
 
-# def main():
-
-#     start_time = time.time()
-
-#     scraper = PPRAScraper()
-#     parser = PPRAParser()
-
-#     document_service = DocumentService()
-
-#     with DatabaseService() as db:
-
-#         try:
-
-#             logger.info("========== AI Tender Pipeline Started ==========")
-
-#             scrape_and_prepare_documents(
-#                 scraper,
-#                 parser,
-#                 db,
-#                 document_service
-#             )
-
-#             embed_pending_tenders(db)
-
-#             logger.info(
-#                 "Completed successfully in %.2f seconds",
-#                 time.time() - start_time
-#             )
-
-#         except Exception:
-
-#             logger.exception("Pipeline failed.")
-#             raise
-
-
-# if __name__ == "__main__":
-#     main()
-
-
-def scraper():
+def main():
 
     start_time = time.time()
 
@@ -198,5 +159,44 @@ def scraper():
 
             logger.exception("Pipeline failed.")
             raise
+
+
+if __name__ == "__main__":
+    main()
+
+
+# def scraper():
+
+#     start_time = time.time()
+
+#     scraper = PPRAScraper()
+#     parser = PPRAParser()
+
+#     document_service = DocumentService()
+
+#     with DatabaseService() as db:
+
+#         try:
+
+#             logger.info("========== AI Tender Pipeline Started ==========")
+
+#             scrape_and_prepare_documents(
+#                 scraper,
+#                 parser,
+#                 db,
+#                 document_service
+#             )
+
+#             embed_pending_tenders(db)
+
+#             logger.info(
+#                 "Completed successfully in %.2f seconds",
+#                 time.time() - start_time
+#             )
+
+#         except Exception:
+
+#             logger.exception("Pipeline failed.")
+#             raise
 
 
