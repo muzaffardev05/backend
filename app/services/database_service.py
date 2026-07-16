@@ -77,6 +77,16 @@ class DatabaseService:
         )
 
         self.db.add(message)
+
+        session = (
+            self.db.query(ChatSession)
+            .filter(ChatSession.id == session_id)
+            .first()
+        )
+
+        if session:
+            session.updated_at = datetime.now()
+
         self.commit()
         self.db.refresh(message)
 
@@ -376,3 +386,101 @@ class DatabaseService:
      
 
      return [row[0] for row in rows]
+
+    def get_session(self, session_id):
+
+        return (
+            self.db.query(ChatSession)
+            .filter(ChatSession.id == session_id)
+            .first()
+        )
+
+    def get_sessions(self, user_id):
+
+        return (
+            self.db.query(ChatSession)
+            .filter(ChatSession.user_id == user_id)
+            .order_by(ChatSession.updated_at.desc())
+            .all()
+        )
+
+    def get_latest_session(self, user_id):
+
+        return (
+            self.db.query(ChatSession)
+            .filter(ChatSession.user_id == user_id)
+            .order_by(ChatSession.updated_at.desc())
+            .first()
+        ) 
+
+    def touch_session(self, session_id):
+
+        session = (
+            self.db.query(ChatSession)
+            .filter(ChatSession.id == session_id)
+            .first()
+        )
+
+        if session:
+
+            session.updated_at = datetime.now()
+
+            self.commit()
+
+        return session        
+
+
+    def update_session_title(self, session_id, title):
+
+        session = (
+            self.db.query(ChatSession)
+            .filter(ChatSession.id == session_id)
+            .first()
+        )
+
+        if session:
+
+            session.title = title
+            session.updated_at = datetime.now()
+
+            self.commit()
+
+        return session    
+
+
+    def delete_session(self, session_id):
+
+        session = (
+            self.db.query(ChatSession)
+            .filter(ChatSession.id == session_id)
+            .first()
+        )
+
+        if session:
+
+            self.db.delete(session)
+
+            self.commit()
+
+            return True
+
+        return False
+
+
+
+    def delete_session(self, session_id):
+
+        session = (
+            self.db.query(ChatSession)
+            .filter(ChatSession.id == session_id)
+            .first()
+        )
+
+        if session is None:
+            return False
+
+        self.db.delete(session)
+
+        self.commit()
+
+        return True   
