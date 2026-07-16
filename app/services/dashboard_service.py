@@ -115,6 +115,96 @@ class DashboardService:
             return {
                 "items": items
             }
+   
 
+
+    def get_category_distribution(self):
+
+        total = (
+            self.db.query(func.count(Tender.id))
+            .scalar()
+        )
+
+        categories = (
+            self.db.query(
+                Tender.category,
+                func.count(Tender.id).label("count")
+            )
+            .group_by(Tender.category)
+            .order_by(func.count(Tender.id).desc())
+            .all()
+        )
+
+        items = []
+        other_count = 0
+
+        for index, (category, count) in enumerate(categories):
+
+            if index < 4:
+                items.append({
+                    "category": category if category else "Other",
+                    "percentage": round((count / total) * 100)
+                })
+            else:
+                other_count += count
+
+        if other_count > 0:
+            items.append({
+                "category": "Other",
+                "percentage": round((other_count / total) * 100)
+            })
+
+        return {
+            "items": items
+        }
+    
+    def get_activity(self, months: int = 12):
+
+        current_year = datetime.now().year
+
+        results = (
+            self.db.query(
+                func.month(Tender.publish_date).label("month"),
+                func.count(Tender.id).label("count")
+            )
+            .filter(func.year(Tender.publish_date) == current_year)
+            .group_by(func.month(Tender.publish_date))
+            .order_by(func.month(Tender.publish_date))
+            .all()
+        )
+
+        month_names = {
+            1: "Jan",
+            2: "Feb",
+            3: "Mar",
+            4: "Apr",
+            5: "May",
+            6: "Jun",
+            7: "Jul",
+            8: "Aug",
+            9: "Sep",
+            10: "Oct",
+            11: "Nov",
+            12: "Dec",
+        }
+
+        data = {month: count for month, count in results}
+
+        start_month = max(1, datetime.now().month - months + 1)
+
+        items = []
+
+        for month in range(start_month, datetime.now().month + 1):
+
+            items.append({
+                "month": month_names[month],
+                "tenders": data.get(month, 0),
+                "saved": 0
+            })
+
+        return {
+            "items": items
+        }
+    
     def close(self):
         self.db.close()
