@@ -1,5 +1,5 @@
 
-from sqlalchemy import Column,Integer,String,DateTime,Text
+from sqlalchemy import Boolean, Column,Integer,String,DateTime,Text
 from app.base import Base
 class Tender(Base):
 
@@ -30,8 +30,9 @@ class Tender(Base):
     status = Column(
        String(200)
     )
-
+    document = Column(Text)
     source_url = Column(Text)
+    embedded = Column(Boolean, default=False)
 
     content_hash = Column(String(64))
 

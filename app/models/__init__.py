@@ -3,5 +3,5 @@
 from .tender import Tender
 from .scraper_log import ScraperLog
 from .user import User
-from .chat_history import ChatHistory
-from .tender_chunk import TenderChunk
+from .chat_message import ChatMessage
+from .chat_session import ChatSession

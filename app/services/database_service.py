@@ -1,13 +1,16 @@
 from datetime import datetime
-
-from sqlalchemy import null
-
+import hashlib
+import logging
+import json
 from app.database import SessionLocal
 from app.models import (
     Tender,
-    TenderChunk
+    ChatMessage,
+    ChatSession
 )
 
+
+logger = logging.getLogger(__name__)
 
 
 class DatabaseService:
@@ -15,176 +18,361 @@ class DatabaseService:
     def __init__(self):
         self.db = SessionLocal()
 
-    def get_or_create(self, model, **kwargs):
+ 
 
-        instance = self.db.query(model).filter_by(**kwargs).first()
+    def __enter__(self):
+        return self
 
-        if instance:
-            return instance
+    def __exit__(self, exc_type, exc_val, exc_tb):
 
-        instance = model(**kwargs)
+        if exc_type:
+            self.rollback()
 
-        self.db.add(instance)
+        self.close()
+
+
+
+    def commit(self):
         self.db.commit()
-        self.db.refresh(instance)
 
-        return instance
+    def rollback(self):
+        self.db.rollback()
 
-    def save_tender(self, tender):
+    def flush(self):
+        self.db.flush()
 
-
-
-        # Duplicate check
-        existing = self.db.query(Tender).filter_by(
-            tender_no=tender["tender_no"]
-        ).first()
-
-        if existing:
-            print(f"Already exists : {tender['tender_no']}")
-            return existing
+    def close(self):
+        self.db.close()
 
 
-        publish_date = datetime.strptime(
-            tender["publish_date"], "%b %d, %Y"
-        )
-        closing_date = datetime.strptime(
-            tender["closing_date"], "%b %d, %Y %I:%M %p"
-        ) if tender["closing_date"] else None
 
-        obj = Tender(
-            website=tender["website"],
-            organization=tender["organization"],
-            department=tender["department"],
-            category=tender["category"],
-  
+    def calculate_hash(self, text: str) -> str:
 
-            reference_number=tender["reference_number"],
-            tender_no=tender["tender_no"],
-            title=tender["title"],
+        return hashlib.sha256(
+            text.encode("utf-8")
+        ).hexdigest()
 
-            publish_date=publish_date,
-            closing_date=closing_date,
 
-            location=tender["location"],
 
-            status=tender["status"],
 
-            source_url=tender["source_url"],
 
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
-            last_scraped=datetime.now()
+    def create_session(self, user_id, title="New Chat"):
+        session = ChatSession(
+            user_id=user_id,
+            title=title
         )
 
+        self.db.add(session)
+        self.commit()
+        self.db.refresh(session)
+
+        return session
+    
+    def save_message(self, session_id, role, content):
+
+        message = ChatMessage(
+            session_id=session_id,
+            role=role,
+            content=content
+        )
+
+        self.db.add(message)
+        self.commit()
+        self.db.refresh(message)
+
+        return message
+
+    def get_messages(self, session_id):
+
+        return (
+            self.db.query(ChatMessage)
+            .filter(ChatMessage.session_id == session_id)
+            .order_by(ChatMessage.created_at)
+            .all()
+        )
+    def save_chat(self,question,answer):
+        now=datetime.now()
+        obj=ChatMessage(
+            id=1,
+            question=question,
+            answer=answer,
+            user_id=1,
+            created_at=now
+        )
         self.db.add(obj)
-        self.db.commit()
+        self.commit()
         self.db.refresh(obj)
-
-        print(f"Inserted : {obj.tender_no}")
-
         return obj
-    
 
-
-
-
-
-    def save_chunks(self, chunks):
-        
-    
+    def save_tender(self, tender,document):
 
         now = datetime.now()
 
-        objects = []
+        publish_date = datetime.strptime(
+            tender["publish_date"],
+            "%b %d, %Y"
+        )
 
-        for chunk in chunks:
-            objects.append(
-                TenderChunk(
-                    tender_id=chunk["tender_id"],
-                    chunk_index=chunk["chunk_index"],
-                    chunk_text=chunk["text"],
-                    created_at=now,
-                    updated_at=now,
+        closing_date = (
+            datetime.strptime(
+                tender["closing_date"],
+                "%b %d, %Y %I:%M %p"
+            )
+            if tender["closing_date"]
+            else None
+        )
+
+        try:
+
+            existing = (
+                self.db.query(Tender)
+                .filter(
+                    Tender.tender_no == tender["tender_no"]
                 )
+                .first()
             )
 
-        self.db.bulk_save_objects(objects)
-        self.db.commit()
 
-        return len(objects)
 
-    def mark_chunk_as_embedded(self, id):
+            if existing:
 
-        chunk = self.db.query(TenderChunk).filter(
-            TenderChunk.id == id
-        ).first()
+                existing.website = tender["website"]
+                existing.organization = tender["organization"]
+                existing.department = tender["department"]
+                existing.category = tender["category"]
 
-        if chunk:
-            chunk.embedded = True
-            self.db.commit()
-            return True
+                existing.reference_number = tender["reference_number"]
 
-        return False
-    
-    def get_unembedded_chunks(self):
-        chunks = (
-            self.db.query(TenderChunk)
-            .filter(TenderChunk.embedded == False)
+                existing.title = tender["title"]
+
+                existing.publish_date = publish_date
+                existing.closing_date = closing_date
+
+                existing.location = tender["location"]
+
+                existing.status = tender["status"]
+                existing.document = document
+
+                existing.source_url = tender["source_url"]
+
+                existing.last_scraped = now
+                existing.updated_at = now
+
+                self.commit()
+
+                logger.info(
+                    "Updated tender %s",
+                    existing.tender_no
+                )
+
+                return existing
+
+
+            obj = Tender(
+
+                website=tender["website"],
+
+                organization=tender["organization"],
+
+                department=tender["department"],
+
+                category=tender["category"],
+
+                reference_number=tender["reference_number"],
+
+                tender_no=tender["tender_no"],
+
+                title=tender["title"],
+
+                publish_date=publish_date,
+
+                closing_date=closing_date,
+
+                location=tender["location"],
+
+                status=tender["status"],
+                document=document,
+
+                source_url=tender["source_url"],
+
+                content_hash=None,
+
+                created_at=now,
+
+                updated_at=now,
+
+                last_scraped=now
+            )
+
+            self.db.add(obj)
+
+            self.commit()
+
+            self.db.refresh(obj)
+
+            logger.info(
+                "Inserted tender %s",
+                obj.tender_no
+            )
+
+            return obj
+
+        except Exception:
+
+            self.rollback()
+
+            logger.exception(
+                "Failed saving tender %s",
+                tender.get("tender_no")
+            )
+
+            raise
+
+
+
+    def tender_changed(self, tender_no):
+
+        tender = (
+            self.db.query(Tender)
+            .filter(Tender.tender_no == tender_no)
+            .first()
+        )
+
+        if not tender:
+            return False
+
+        new_hash = self.calculate_hash(tender.document)
+
+        if tender.content_hash == new_hash:
+            return False
+
+        tender.content_hash = new_hash
+        tender.embedded = False
+        tender.updated_at = datetime.now()
+
+        self.commit()
+
+        return True
+
+
+
+   
+    def get_unembedded_tenders(self, offset=0):
+
+        rows = (
+            self.db.query(
+                Tender.id,
+                Tender.title,
+                Tender.organization,
+                Tender.publish_date,
+                Tender.closing_date,
+                Tender.location,
+                Tender.status,
+                Tender.category,
+                Tender.tender_no,
+                Tender.document,
+            )
+            .filter(Tender.embedded.is_(False))
+            
+            .offset(offset)
             .all()
         )
 
         return [
             {
-                "id": chunk.id,
-                "tender_id": chunk.tender_id,
-                "chunk_index": chunk.chunk_index,
-                "text": chunk.chunk_text,
+                "id": row.id,
+                "title": row.title,
+                "organization": row.organization,
+                "publish_date": row.publish_date,
+                "closing_date": row.closing_date,
+                "location": row.location,
+                "status": row.status,
+                "category": row.category,
+                "tender_id": row.tender_no,
+                "text": row.document,
             }
-            for chunk in chunks
+            for row in rows
         ]
-# def replace_chunks(self, tender_id, chunks):
-#     """
-#     Delete existing chunks for a tender and insert new ones.
-#     """
 
-#     self.db.query(TenderChunk).filter(
-#         TenderChunk.tender_id == tender_id
-#     ).delete()
+    def mark_tenders_as_embedded(self, ids):
 
-#     now = datetime.now()
+        if not ids:
+            return 0
 
-#     objects = []
+        try:
 
-#     for index, text in enumerate(chunks):
-#         objects.append(
-#             TenderChunk(
-#                 tender_id=tender_id,
-#                 chunk_index=index,
-#                 chunk_text=text,
-#                 created_at=now,
-#                 updated_at=now,
-#             )
-#         )
+            updated = (
 
-#     self.db.bulk_save_objects(objects)
-#     self.db.commit()
+                self.db.query(Tender)
 
-#     return len(objects)
+                .filter(
+                    Tender.id.in_(ids)
+                )
 
-    # def save_scraper_log(self,log_data):
-    #         """
-    #         Save scraper log data to the database.
-    #         """
-    #         try:
-                
-    #             log_entry = ScraperLog(**log_data)
-    #             self.db.add(log_entry)
-    #             self.db.commit()
-    #             self.db.refresh(log_entry)
-    #             print(f"Scraper log saved: {log_entry.id}")
-    #             return log_entry
-    #         except Exception as e:
-    #             self.db.rollback()
-    #             print(f"Error saving scraper log: {e}")
-    #             return None
+                .update(
+
+                    {
+                        Tender.embedded: True
+                    },
+
+                    synchronize_session=False
+                )
+
+            )
+
+            self.commit()
+
+            return updated
+
+        except Exception:
+
+            self.rollback()
+
+            logger.exception(
+                "Failed updating embedded status"
+            )
+
+            raise
+
+
+
+    def total_tenders(self):
+
+        return (
+            self.db.query(Tender)
+            .count()
+        )
+
+
+  
+    def total_unembedded_tenders(self):
+
+        return (
+
+            self.db.query(Tender)
+
+            .filter(
+                Tender.embedded == False
+            )
+
+            .count()
+
+        )
     
+
+    def get_distinct_organizations(self):
+     
+
+     rows = (
+        self.db.query(Tender.organization)
+        .filter(
+            Tender.organization.isnot(None),
+            Tender.organization != ""
+        )
+        .distinct()
+        .order_by(Tender.organization)
+        .all()
+    )
+     
+
+     return [row[0] for row in rows]

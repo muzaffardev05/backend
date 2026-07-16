@@ -1,25 +1,23 @@
+
 from sentence_transformers import SentenceTransformer
+
 
 class EmbeddingService:
 
     def __init__(self):
-        self.model = SentenceTransformer("BAAI/bge-small-en-v1.5")
 
-    def generate_embedding(self, text: str):
-        embedding = self.model.encode(
-            text,
-            normalize_embeddings=True
+
+        self.model = SentenceTransformer(
+            "BAAI/bge-small-en-v1.5",
+            device="cpu"
         )
-
-        return embedding.tolist()
 
     def generate_embeddings(self, texts):
-        embeddings = self.model.encode(
+
+        return self.model.encode(
             texts,
-            normalize_embeddings=True
+            batch_size=512,
+            normalize_embeddings=True,
+            convert_to_numpy=True,
+            show_progress_bar=False
         )
-
-        return embeddings.tolist()
-
-
-

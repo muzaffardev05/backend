@@ -2,40 +2,30 @@ class DocumentService:
 
     def build_document(self, tender):
 
+        department = tender.get("department") or "Unknown"
+
         return f"""
-    Website: {tender["website"]}
+Title: {tender["title"]}
 
-    Tender Number: {tender["tender_no"]}
+Organization: {tender["organization"]}
 
-    Reference Number: {tender["reference_number"]}
+Department: {department}
 
-    Title:
-    {tender["title"]}
+Category: {tender["category"]}
 
+Location: {tender["location"]}
 
-    Organization:
-    {tender["organization"]}
+Reference Number: {tender["reference_number"]}
 
-    Department:
-    {tender["department"] if tender["department"] else "Unknown"}
+Tender Number: {tender["tender_no"]}
 
-    Category:
-    {tender["category"]}
+Status: {tender.get("status", "Published")}
 
-    Location:
-    {tender["location"]}
+Published Date: {tender["publish_date"]}
 
-    source_url:
-    {tender["source_url"]}
+Closing Date: {tender["closing_date"]}
 
+Source Website: {tender["website"]}
 
-    Published Date:
-    {tender["publish_date"]}
-
-    Closing Date:
-    {tender["closing_date"]}
-
-
-
-
-    """.strip()
+Source URL: {tender["source_url"]}
+""".strip()
