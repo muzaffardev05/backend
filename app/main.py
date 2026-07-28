@@ -7,7 +7,11 @@ app = FastAPI(
     title="Tender AI API",
     version="1.0.0"
 )
-
+@app.get("/health")
+async def health():
+    return {
+        "status": "healthy"
+    }
 app.include_router(
     dashboard_router,
     prefix="/api/v1"
