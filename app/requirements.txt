@@ -4,7 +4,6 @@ python-dotenv
 sqlalchemy 
 pymysql
 sentence-transformers
-touch
 faiss-cpu
 python-dateutil
 groq
