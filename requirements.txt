@@ -8,3 +8,5 @@ touch
 faiss-cpu
 python-dateutil
 groq
+fastapi
+uvicorn
