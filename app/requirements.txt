@@ -1,5 +1,5 @@
 requests
-beautifulsoup4
+
 python-dotenv
 sqlalchemy 
 pymysql
@@ -9,3 +9,4 @@ python-dateutil
 groq
 fastapi
 uvicorn
+beautifulsoup4
