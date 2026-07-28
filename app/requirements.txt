@@ -9,4 +9,4 @@ python-dateutil
 groq
 fastapi
 uvicorn
-beautifulsoup4
+
